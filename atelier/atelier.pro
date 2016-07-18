@@ -12,17 +12,17 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = atelier
 TEMPLATE = app
 
-INCLUDEPATH += ../../
+INCLUDEPATH += ../
 
 SOURCES += main.cpp\
         mainwindow.cpp \
     widgetatelier.cpp \
-    ../../data-model/exploitation.cpp \
-    ../../data-model/atelier.cpp
+    ../data-model/exploitation.cpp \
+    ../data-model/atelier.cpp
 
 HEADERS  += mainwindow.h \
     widgetatelier.h \
-    ../../data-model/exploitation.h \
-    ../../data-model/atelier.h
+    ../data-model/exploitation.h \
+    ../data-model/atelier.h
 
 FORMS    += mainwindow.ui

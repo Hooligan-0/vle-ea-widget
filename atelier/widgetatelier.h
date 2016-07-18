@@ -18,6 +18,8 @@ class widgetAtelier : public QWidget
 public:
     explicit widgetAtelier(QWidget *parent = 0);
     bool     setup(Exploitation *exploitation);
+private:
+    void addTab(Atelier *atelier);
 signals:
 
 public slots:
