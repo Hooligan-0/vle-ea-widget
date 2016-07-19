@@ -119,6 +119,11 @@ void widgetAtelier::addTab(Atelier *atelier)
     tabs->addTab(page, atelier->getName());
 }
 
+/**
+ * @brief Slot called when the value of a cell is modified
+ * @param row Position (row) of the modified cell
+ * @param col Position (column) of the modified cell
+ */
 void widgetAtelier::slotCellChanged(int row, int col)
 {
     // Search the table widget that has emit signal
@@ -138,6 +143,7 @@ void widgetAtelier::slotCellChanged(int row, int col)
     Atelier *entity = (Atelier *) item->data(Qt::UserRole).value<void *>();
     if (entity == 0)
         return;
+
     // Update the entity parameter with the new value
     entity->setParameterValue(col-1, newValue);
 }
@@ -172,5 +178,10 @@ void widgetAtelierDelegate::setModelData(QWidget *editor, QAbstractItemModel *mo
 {
     QLineEdit *line = static_cast<QLineEdit*>(editor);
     QString value = line->text();
-    model->setData(index, value);
+    // Check if the new value is a 'long'
+    bool valid;
+    value.toLong(&valid);
+    // Update the cell value only if the new value is a 'long'
+    if (valid)
+        model->setData(index, value);
 }
