@@ -20,12 +20,30 @@ public:
     bool     setup(Exploitation *exploitation);
 private:
     void addTab(Atelier *atelier);
+
 signals:
 
 public slots:
 
+private slots:
+    void slotCellChanged(int row, int column);
+
 private:
     Exploitation *mExploitation;
 };
+
+#include <QStyledItemDelegate>
+
+class widgetAtelierDelegate : public QStyledItemDelegate
+{
+Q_OBJECT
+
+public:
+    widgetAtelierDelegate(QObject* parent = 0);
+    QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+    void setEditorData(QWidget *editor, const QModelIndex &index) const;
+    void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const;
+};
+
 
 #endif // WIDGETATELIER_H

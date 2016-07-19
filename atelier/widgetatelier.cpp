@@ -6,7 +6,9 @@
  * Copyright (c) 2016 Agilack
  */
 #include <QLabel>
+#include <QLineEdit>
 #include <QTableWidget>
+#include <QListWidget>
 #include <QVBoxLayout>
 #include <QHeaderView>
 #include "widgetatelier.h"
@@ -64,6 +66,7 @@ void widgetAtelier::addTab(Atelier *atelier)
     // Create a table to show Entities and Parameters
     QTableWidget *entityTable = new QTableWidget(page);
     entityTable->verticalHeader()->setVisible(false);
+    entityTable->setProperty("atelier_name", QVariant(atelier->getName()));
 
     // Set table headers according to Atelier
     entityTable->setColumnCount( 1 + atelier->countParameter() );
@@ -93,13 +96,81 @@ void widgetAtelier::addTab(Atelier *atelier)
         for (int j = 0; j < entity->countParameter(); ++j)
         {
             QString pvalue = QString::number(entity->getParameterValue(j));
-            entityTable->setCellWidget(row, 1 + j, new QLabel(pvalue));
+            QTableWidgetItem *item = new QTableWidgetItem(pvalue);
+            // Save a pointer to the entity
+            QVariant vEntity = qVariantFromValue((void *)entity);
+            item->setData(Qt::UserRole, vEntity);
+            //entityTable->setCellWidget(row, 1 + j, new QLabel(pvalue));
+            entityTable->setItem(row, 1 + j, item);
         }
     }
+
+    entityTable->setItemDelegate(new widgetAtelierDelegate(entityTable));
+    entityTable->setEditTriggers(QAbstractItemView::DoubleClicked
+                                    | QAbstractItemView::SelectedClicked);
+
+    QObject::connect(entityTable, SIGNAL(cellChanged(int,int)),
+                     this,        SLOT(slotCellChanged(int,int)));
 
     QVBoxLayout *atelierLayout = new QVBoxLayout;
     atelierLayout->addWidget(entityTable);
     page->setLayout(atelierLayout);
 
     tabs->addTab(page, atelier->getName());
+}
+
+void widgetAtelier::slotCellChanged(int row, int col)
+{
+    // Search the table widget that has emit signal
+    QTableWidget *table = qobject_cast<QTableWidget*>( sender() );
+    if (table == 0)
+        return;
+
+    // Get the cell into this table
+    QTableWidgetItem *item = table->item(row, col);
+    if (item == 0)
+        return;
+
+    // Get the new value and convert it to long
+    long newValue = item->text().toLong();
+
+    // Get the associated entity
+    Atelier *entity = (Atelier *) item->data(Qt::UserRole).value<void *>();
+    if (entity == 0)
+        return;
+    // Update the entity parameter with the new value
+    entity->setParameterValue(col-1, newValue);
+}
+
+widgetAtelierDelegate::widgetAtelierDelegate(QObject *parent) : QStyledItemDelegate(parent)
+{
+    // Nothing to do
+}
+
+QWidget *widgetAtelierDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+    (void)option;
+    (void)index;
+    QLineEdit* editor = new QLineEdit(parent);
+
+    QPalette palette;
+    palette.setColor(QPalette::Base, QColor(200,255,225));
+    palette.setColor(QPalette::Text, Qt::black);
+    editor->setPalette(palette);
+
+    return editor;
+}
+
+void widgetAtelierDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const
+{
+    QVariant value = index.model()->data(index, Qt::EditRole);
+    QLineEdit *line = static_cast<QLineEdit*>(editor);
+    line->setText(value.toString());
+}
+
+void widgetAtelierDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const
+{
+    QLineEdit *line = static_cast<QLineEdit*>(editor);
+    QString value = line->text();
+    model->setData(index, value);
 }

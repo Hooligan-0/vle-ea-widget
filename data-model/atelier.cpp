@@ -5,6 +5,7 @@
  *
  * Copyright (c) 2016 Agilack
  */
+#include <QDebug>
 #include "atelier.h"
 
 /**
@@ -42,6 +43,28 @@ Atelier::~Atelier()
         mParameters.removeFirst();
         // Then, delete it
         delete parameter;
+    }
+}
+
+/**
+ * @brief Show current values of this Atelier
+ *
+ */
+void Atelier::dump(void)
+{
+    qWarning() << "--=={ Dump " << getName() << " }==--";
+    for (int i = 0; i < mEntities.count(); i++)
+    {
+        Atelier *entity = mEntities.at(i);
+        QString dbgLine;
+        dbgLine += entity->getName() + " : ";
+        for (int j = 0; j < entity->countParameter(); j++)
+        {
+            dbgLine += QString::number(entity->getParameterValue(j));
+            if (j != (entity->countParameter() - 1))
+                dbgLine += " , ";
+        }
+        qWarning() << dbgLine;
     }
 }
 
