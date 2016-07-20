@@ -8,6 +8,9 @@
 #ifndef WIDGETATELIER_H
 #define WIDGETATELIER_H
 
+#include <QModelIndex>
+#include <QPoint>
+#include <QTableWidget>
 #include <QTabWidget>
 #include <QWidget>
 #include "data-model/exploitation.h"
@@ -26,7 +29,10 @@ signals:
 public slots:
 
 private slots:
-    void slotCellChanged(int row, int column);
+    void slotCellChanged  (int row, int column);
+    void slotHeaderEdit   (int index);
+    void slotHeaderEditEnd(void);
+    void slotHeaderMenu   (const QPoint &pos);
 
 private:
     Exploitation *mExploitation;
