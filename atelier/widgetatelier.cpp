@@ -74,12 +74,17 @@ void widgetAtelier::addTab(Atelier *atelier)
     entityTable->setColumnCount( 1 + atelier->countParameter() );
     QTableWidgetItem *item = new QTableWidgetItem();
     item->setText(tr("Nom"));
+    item->setFlags( item->flags() ^ Qt::ItemIsEditable);
     // Insert parameters names into horizontal header
     entityTable->setHorizontalHeaderItem(0, item);
     for (int i = 0; i < atelier->countParameter(); ++i)
     {
         QTableWidgetItem *item = new QTableWidgetItem();
         item->setText( atelier->getParameterName(i) );
+        if (atelier->isParameterMandatory(i))
+            item->setFlags( item->flags() ^ Qt::ItemIsEditable);
+        else
+            item->setFlags( item->flags() | Qt::ItemIsEditable);
         entityTable->setHorizontalHeaderItem(1 + i, item);
     }
     // Catch signal for header context menu
@@ -174,6 +179,10 @@ void widgetAtelier::slotHeaderEdit(int index)
 
     QTableWidget *entityTable = qobject_cast<QTableWidget*>( headerView->parent() );
     QTableWidgetItem *item = entityTable->horizontalHeaderItem(index);
+
+    // Test if this column header can be modified
+    if ( ! (item->flags() & Qt::ItemIsEditable))
+        return;
 
     // Create a line-edit widget
     QLineEdit* editor = new QLineEdit(headerView->viewport());

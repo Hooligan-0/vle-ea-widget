@@ -31,7 +31,9 @@ public:
     int  countParameter(void);
     QString getParameterName(int index);
     double  getParameterValue(int index);
+    bool    isParameterMandatory(int index);
     void    setParameterValue(int index, double value);
+    void    setParameterMandatory(int index);
 private:
     QString mName;
     QList<AtelierParameter *> mParameters;

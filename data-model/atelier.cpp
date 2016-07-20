@@ -190,6 +190,33 @@ double Atelier::getParameterValue(int index)
 }
 
 /**
+ * @brief Check if a parameter is mandatory (or not)
+ *
+ * @param index
+ * @return bool
+ */
+bool Atelier::isParameterMandatory(int index)
+{
+    if (index > (mParameters.count() - 1))
+        return false;
+
+    return mParameters.at(index)->isMandatory();
+}
+
+/**
+ * @brief Mark a parameter as mandatory
+ *
+ * @param index
+ */
+void Atelier::setParameterMandatory(int index)
+{
+    if (index > (mParameters.count() - 1))
+        return;
+
+    mParameters.at(index)->setMandatory();
+}
+
+/**
  * @brief Set the value of a parameter
  *
  * @param index
