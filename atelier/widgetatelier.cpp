@@ -68,7 +68,7 @@ void widgetAtelier::addTab(Atelier *atelier)
     QTableWidget *entityTable = new QTableWidget(page);
     entityTable->verticalHeader()->setVisible(false);
     entityTable->setSelectionMode(QAbstractItemView::SingleSelection);
-    entityTable->setProperty("atelier_name", QVariant(atelier->getName()));
+    entityTable->setProperty("atelier", qVariantFromValue((void *)atelier));
 
     // Set table headers according to Atelier
     entityTable->setColumnCount( 1 + atelier->countParameter() );
@@ -230,6 +230,11 @@ void widgetAtelier::slotHeaderEditEnd(void)
     delete editor;
 }
 
+/**
+ * @brief Slot called to show context menu on horitontal table header (right click)
+ *
+ * @param pos Mouse click position into header
+ */
 void widgetAtelier::slotHeaderMenu(const QPoint &pos)
 {
     QHeaderView *headerView = qobject_cast<QHeaderView*>( sender() );
@@ -246,6 +251,13 @@ void widgetAtelier::slotHeaderMenu(const QPoint &pos)
     QAction *selectedAction = ctxMenu.exec(QCursor::pos());
     if (selectedAction == actionAdd)
     {
+        // Search the associated Atelier
+        QVariant vAtelier = entityTable->property("atelier");
+        // Create a new parameter into this Atelier
+        Atelier *atelier = (Atelier *) vAtelier.value<void *>();
+        atelier->addParameter("NewParameter", 0);
+
+        // Insert a new column to the table
         QTableWidgetItem *item = new QTableWidgetItem();
         item->setFlags ( Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable );
         item->setText("NewParameter");
@@ -257,8 +269,14 @@ void widgetAtelier::slotHeaderMenu(const QPoint &pos)
 
         for (int i = 0; i < entityTable->rowCount(); i++)
         {
+            Atelier *entity = atelier->getEntity(i);
+
             QTableWidgetItem *item = new QTableWidgetItem("0");
             entityTable->setItem(i, pos, item);
+
+            // Save a pointer to the entity into cell
+            QVariant vEntity = qVariantFromValue((void *)entity);
+            item->setData(Qt::UserRole, vEntity);
         }
     }
 }

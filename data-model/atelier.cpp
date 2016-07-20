@@ -136,6 +136,17 @@ void Atelier::addParameter(const QString &name, double initialValue)
     newParam->setValue(initialValue);
 
     mParameters.push_back(newParam);
+
+    if ( ! mEntities.isEmpty())
+    {
+        int index = (mParameters.count() - 1);
+        for (int i = 0; i < mEntities.count(); i++)
+        {
+            Atelier *entity = mEntities.at(i);
+            entity->addParameter(newParam);
+            entity->setParameterValue(index, initialValue);
+        }
+    }
 }
 
 /**
