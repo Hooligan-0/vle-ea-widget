@@ -66,17 +66,14 @@ void widgetAtelier::addTab(Atelier *atelier)
 
     // Create a table to show Entities and Parameters
     QTableWidget *entityTable = new QTableWidget(page);
-    entityTable->verticalHeader()->setVisible(false);
+    entityTable->verticalHeader()->setVisible(true);
     entityTable->setSelectionMode(QAbstractItemView::SingleSelection);
     entityTable->setProperty("atelier", qVariantFromValue((void *)atelier));
 
     // Set table headers according to Atelier
-    entityTable->setColumnCount( 1 + atelier->countParameter() );
-    QTableWidgetItem *item = new QTableWidgetItem();
-    item->setText(tr("Nom"));
-    item->setFlags( item->flags() ^ Qt::ItemIsEditable);
+    entityTable->setColumnCount( atelier->countParameter() );
+
     // Insert parameters names into horizontal header
-    entityTable->setHorizontalHeaderItem(0, item);
     for (int i = 0; i < atelier->countParameter(); ++i)
     {
         QTableWidgetItem *item = new QTableWidgetItem();
@@ -85,7 +82,7 @@ void widgetAtelier::addTab(Atelier *atelier)
             item->setFlags( item->flags() ^ Qt::ItemIsEditable);
         else
             item->setFlags( item->flags() | Qt::ItemIsEditable);
-        entityTable->setHorizontalHeaderItem(1 + i, item);
+        entityTable->setHorizontalHeaderItem(i, item);
     }
     // Catch signal for header context menu
     QHeaderView *headerView = entityTable->horizontalHeader();
@@ -104,8 +101,10 @@ void widgetAtelier::addTab(Atelier *atelier)
         // Insert a new row at the bottom of the table
         int row = entityTable->rowCount();
         entityTable->insertRow(row);
-        // Set Entity name into first column
-        entityTable->setCellWidget(row, 0, new QLabel(entity->getName()));
+
+        // Set Entity name into header column
+        QTableWidgetItem *hItem = new QTableWidgetItem(entity->getName());
+        entityTable->setVerticalHeaderItem(row, hItem);
 
         // Set parameters values
         for (int j = 0; j < entity->countParameter(); ++j)
@@ -115,8 +114,7 @@ void widgetAtelier::addTab(Atelier *atelier)
             // Save a pointer to the entity
             QVariant vEntity = qVariantFromValue((void *)entity);
             item->setData(Qt::UserRole, vEntity);
-            //entityTable->setCellWidget(row, 1 + j, new QLabel(pvalue));
-            entityTable->setItem(row, 1 + j, item);
+            entityTable->setItem(row, j, item);
         }
     }
 
@@ -160,7 +158,7 @@ void widgetAtelier::slotCellChanged(int row, int col)
         return;
 
     // Update the entity parameter with the new value
-    entity->setParameterValue(col-1, newValue);
+    entity->setParameterValue(col, newValue);
 }
 
 /**
@@ -230,8 +228,6 @@ void widgetAtelier::slotHeaderEditEnd(void)
     delete editor;
 }
 
-#include <QDebug>
-
 /**
  * @brief Slot called to show context menu on horitontal table header (right click)
  *
@@ -259,11 +255,10 @@ void widgetAtelier::slotHeaderMenu(const QPoint &pos)
     QAction *actionAdd = ctxMenu.addAction(tr("Add parameter"));
 
     QAction *actionRemove = 0;
-    if (selectedColumn > 0)
+    if (selectedColumn >= 0)
     {
         actionRemove = ctxMenu.addAction(tr("Remove parameter"));
-        int index = selectedColumn - 1;
-        if (atelier->isParameterMandatory(index))
+        if (atelier->isParameterMandatory(selectedColumn))
             actionRemove->setEnabled(false);
     }
 
@@ -286,7 +281,7 @@ void widgetAtelier::slotHeaderMenu(const QPoint &pos)
         item->setText("NewParameter");
         int pos = entityTable->columnCount();
         // Increment the number of columns into table
-        entityTable->setColumnCount( pos + 1 );
+        entityTable->setColumnCount( pos + 1);
 
         entityTable->setHorizontalHeaderItem(pos, item);
 
@@ -305,9 +300,8 @@ void widgetAtelier::slotHeaderMenu(const QPoint &pos)
     // If the "Remove" action has been selected
     else if (selectedAction == actionRemove)
     {
-        int index = selectedColumn - 1;
         // Delete the requested parameter into the Atelier
-        atelier->delParameter(index);
+        atelier->delParameter(selectedColumn);
         // Remove the selected column into the table widget
         entityTable->removeColumn(selectedColumn);
     }
