@@ -29,6 +29,7 @@ public:
     void addParameter(const QString &name, double initialValue);
     void addParameter(AtelierParameter *parameter);
     int  countParameter(void);
+    void delParameter(int index);
     QString getParameterName(int index);
     double  getParameterValue(int index);
     bool    isParameterMandatory(int index);

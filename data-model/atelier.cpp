@@ -173,6 +173,27 @@ int Atelier::countParameter(void)
 }
 
 /**
+ * @brief Delete one of the parameters
+ *
+ * @param index Parameter to remove
+ */
+void Atelier::delParameter(int index)
+{
+    if (index > (mParameters.count() - 1))
+        return;
+
+    // Remove the selected parameter into all entities
+    for (int i = 0; i < mEntities.count(); i++)
+    {
+        Atelier *entity = mEntities.at(i);
+        entity->delParameter(index);
+    }
+
+    // Remove the selected parameter into the local parameter list
+    mParameters.removeAt(index);
+}
+
+/**
  * @brief Get the name of one parameter
  *
  * @param index

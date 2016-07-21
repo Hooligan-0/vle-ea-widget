@@ -230,6 +230,8 @@ void widgetAtelier::slotHeaderEditEnd(void)
     delete editor;
 }
 
+#include <QDebug>
+
 /**
  * @brief Slot called to show context menu on horitontal table header (right click)
  *
@@ -241,20 +243,41 @@ void widgetAtelier::slotHeaderMenu(const QPoint &pos)
     if (headerView == 0)
         return;
 
-    headerView->logicalIndexAt(pos);
+    int selectedColumn = headerView->logicalIndexAt(pos);
 
     QTableWidget *entityTable = qobject_cast<QTableWidget*>( headerView->parent() );
+    if (entityTable == 0)
+        return;
+
+    // Search the associated Atelier
+    QVariant vAtelier = entityTable->property("atelier");
+    if ( ! vAtelier.isValid())
+        return;
+    Atelier *atelier = (Atelier *) vAtelier.value<void *>();
 
     QMenu ctxMenu(this);
     QAction *actionAdd = ctxMenu.addAction(tr("Add parameter"));
 
-    QAction *selectedAction = ctxMenu.exec(QCursor::pos());
-    if (selectedAction == actionAdd)
+    QAction *actionRemove = 0;
+    if (selectedColumn > 0)
     {
-        // Search the associated Atelier
-        QVariant vAtelier = entityTable->property("atelier");
+        actionRemove = ctxMenu.addAction(tr("Remove parameter"));
+        int index = selectedColumn - 1;
+        if (atelier->isParameterMandatory(index))
+            actionRemove->setEnabled(false);
+    }
+
+    QAction *selectedAction = ctxMenu.exec(QCursor::pos());
+
+    // If the menu is closed without any action selected
+    if (selectedAction == 0)
+    {
+        // Nothing selected, nothing to do
+    }
+    // If the "Add" action has been selected
+    else if (selectedAction == actionAdd)
+    {
         // Create a new parameter into this Atelier
-        Atelier *atelier = (Atelier *) vAtelier.value<void *>();
         atelier->addParameter("NewParameter", 0);
 
         // Insert a new column to the table
@@ -278,6 +301,15 @@ void widgetAtelier::slotHeaderMenu(const QPoint &pos)
             QVariant vEntity = qVariantFromValue((void *)entity);
             item->setData(Qt::UserRole, vEntity);
         }
+    }
+    // If the "Remove" action has been selected
+    else if (selectedAction == actionRemove)
+    {
+        int index = selectedColumn - 1;
+        // Delete the requested parameter into the Atelier
+        atelier->delParameter(index);
+        // Remove the selected column into the table widget
+        entityTable->removeColumn(selectedColumn);
     }
 }
 
