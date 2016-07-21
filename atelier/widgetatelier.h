@@ -21,6 +21,8 @@ class widgetAtelier : public QWidget
 public:
     explicit widgetAtelier(QWidget *parent = 0);
     bool     setup(Exploitation *exploitation);
+protected:
+    void addEntity(QTableWidget *table, Atelier *entity);
 private:
     void addTab(Atelier *atelier);
 
@@ -33,6 +35,9 @@ private slots:
     void slotHeaderEdit   (int index);
     void slotHeaderEditEnd(void);
     void slotHeaderMenu   (const QPoint &pos);
+    void slotNamesMenu    (const QPoint &pos);
+    void slotNamesEdit    (int index);
+    void slotNamesEditEnd (void);
 
 private:
     Exploitation *mExploitation;

@@ -123,6 +123,14 @@ Atelier *Atelier::getEntity(int index)
     return mEntities.at(index);
 }
 
+void Atelier::removeEntity(int index)
+{
+    if (index > (mEntities.count() - 1))
+        return;
+
+    mEntities.removeAt(index);
+}
+
 /**
  * @brief Create a new parameter
  *

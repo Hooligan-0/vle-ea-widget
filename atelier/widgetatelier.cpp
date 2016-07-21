@@ -51,6 +51,29 @@ bool widgetAtelier::setup(Exploitation *exploitation)
     return true;
 }
 
+void widgetAtelier::addEntity(QTableWidget *table, Atelier *entity)
+{
+    // Insert a new row at the bottom of the table
+    int row = table->rowCount();
+    table->insertRow(row);
+
+    // Set Entity name into header column
+    QTableWidgetItem *hItem = new QTableWidgetItem(entity->getName());
+    hItem->setData(Qt::UserRole, qVariantFromValue((void *)entity));
+    table->setVerticalHeaderItem(row, hItem);
+
+    // Set parameters values
+    for (int i = 0; i < entity->countParameter(); ++i)
+    {
+        QString pvalue = QString::number(entity->getParameterValue(i));
+        QTableWidgetItem *item = new QTableWidgetItem(pvalue);
+        // Save a pointer to the entity
+        QVariant vEntity = qVariantFromValue((void *)entity);
+        item->setData(Qt::UserRole, vEntity);
+        table->setItem(row, i, item);
+    }
+}
+
 /**
  * @brief Create and insert a new tab for an Atelier
  * @param atelier Pointer to the Atelier
@@ -70,6 +93,11 @@ void widgetAtelier::addTab(Atelier *atelier)
     entityTable->setSelectionMode(QAbstractItemView::SingleSelection);
     entityTable->setProperty("atelier", qVariantFromValue((void *)atelier));
 
+    // Set a minimum height to show header when no parameter is defined
+    entityTable->horizontalHeader()->setMinimumHeight(20);
+    // Set a minimum width to show header when no entity is defined
+    entityTable->verticalHeader()->setMinimumWidth(60);
+
     // Set table headers according to Atelier
     entityTable->setColumnCount( atelier->countParameter() );
 
@@ -84,39 +112,27 @@ void widgetAtelier::addTab(Atelier *atelier)
             item->setFlags( item->flags() | Qt::ItemIsEditable);
         entityTable->setHorizontalHeaderItem(i, item);
     }
-    // Catch signal for header context menu
-    QHeaderView *headerView = entityTable->horizontalHeader();
-    headerView->setSectionsClickable(true);
-    headerView->setContextMenuPolicy(Qt::CustomContextMenu);
-    QObject::connect(headerView, SIGNAL(customContextMenuRequested(const QPoint &)),
+    // Catch signal for horizontal header context menu (parameters)
+    QHeaderView *paramHeader = entityTable->horizontalHeader();
+    paramHeader->setSectionsClickable(true);
+    paramHeader->setContextMenuPolicy(Qt::CustomContextMenu);
+    QObject::connect(paramHeader, SIGNAL(customContextMenuRequested(const QPoint &)),
                      this,        SLOT (slotHeaderMenu(const QPoint &)));
-    QObject::connect(headerView, SIGNAL(sectionDoubleClicked(int)),
-                     this,       SLOT  (slotHeaderEdit(int)));
+    QObject::connect(paramHeader, SIGNAL(sectionDoubleClicked(int)),
+                     this,        SLOT  (slotHeaderEdit(int)));
+
+    // Catch signal for vertical header context menu (entities names)
+    QHeaderView *namesHeader = entityTable->verticalHeader();
+    namesHeader->setSectionsClickable(true);
+    namesHeader->setContextMenuPolicy(Qt::CustomContextMenu);
+    QObject::connect(namesHeader, SIGNAL(customContextMenuRequested(const QPoint &)),
+                     this,        SLOT (slotNamesMenu(const QPoint &)));
+    QObject::connect(namesHeader, SIGNAL(sectionDoubleClicked(int)),
+                     this,        SLOT  (slotNamesEdit(int)));
 
     // Insert atelier entities (one per row)
     for (int i = 0; i < atelier->countEntity(); ++i)
-    {
-        Atelier *entity = atelier->getEntity(i);
-
-        // Insert a new row at the bottom of the table
-        int row = entityTable->rowCount();
-        entityTable->insertRow(row);
-
-        // Set Entity name into header column
-        QTableWidgetItem *hItem = new QTableWidgetItem(entity->getName());
-        entityTable->setVerticalHeaderItem(row, hItem);
-
-        // Set parameters values
-        for (int j = 0; j < entity->countParameter(); ++j)
-        {
-            QString pvalue = QString::number(entity->getParameterValue(j));
-            QTableWidgetItem *item = new QTableWidgetItem(pvalue);
-            // Save a pointer to the entity
-            QVariant vEntity = qVariantFromValue((void *)entity);
-            item->setData(Qt::UserRole, vEntity);
-            entityTable->setItem(row, j, item);
-        }
-    }
+        addEntity(entityTable, atelier->getEntity(i));
 
     entityTable->setItemDelegate(new widgetAtelierDelegate(entityTable));
     entityTable->setEditTriggers(QAbstractItemView::DoubleClicked
@@ -304,6 +320,144 @@ void widgetAtelier::slotHeaderMenu(const QPoint &pos)
         atelier->delParameter(selectedColumn);
         // Remove the selected column into the table widget
         entityTable->removeColumn(selectedColumn);
+    }
+}
+
+/**
+ * @brief Slot called on row header double-clicked to edit entity name
+ *
+ * @param index Row index
+ */
+void widgetAtelier::slotNamesEdit(int index)
+{
+    if (index < 0)
+        return;
+
+    QHeaderView *headerView = qobject_cast<QHeaderView*>( sender() );
+    if (headerView == 0)
+        return;
+
+    QTableWidget *entityTable = qobject_cast<QTableWidget*>( headerView->parent() );
+    QTableWidgetItem *item = entityTable->verticalHeaderItem(index);
+
+    // Test if this entity name can be modified
+    if ( ! (item->flags() & Qt::ItemIsEditable))
+        return;
+
+    // Create a line-edit widget
+    QLineEdit* editor = new QLineEdit(headerView->viewport());
+    // Move this widget to overlay the column header
+    int editorY = headerView->sectionViewportPosition(index);
+    int editorH = headerView->sectionSize(index);
+    int editorW = headerView->width();
+    editor->resize(editorW, editorH);
+    editor->move(0, editorY);
+    // Save a copy of the column index
+    editor->setProperty("index", QVariant(index));
+    editor->setProperty("tableWidget", qVariantFromValue((void *)entityTable));
+
+    // Catch the end-of-edition event
+    QObject::connect(editor, SIGNAL(editingFinished()),
+                     this,   SLOT(slotNamesEditEnd()));
+
+    // Copy the header title to edit box
+    editor->setText( item->text() );
+
+    editor->setFocus();
+    editor->show();
+}
+
+/**
+ * @brief Slot called at the end of edition of an entity name
+ *
+ * When the user want to modify the name of an entity, a LineEdit widget is
+ * created to overlay the header hitself (see slotNamesEdit). The "end" of
+ * edition can be when the user hit "enter" or when the widget lost focus.
+ */
+void widgetAtelier::slotNamesEditEnd (void)
+{
+    QLineEdit *editor = qobject_cast<QLineEdit*>( sender() );
+    if (editor == 0)
+        return;
+
+    QVariant vTable = editor->property("tableWidget");
+    QVariant vIndex = editor->property("index");
+    if ( (vIndex.isValid() == false) || (vTable.isValid() == false) )
+        return;
+
+    // Get the table widget
+    QTableWidget *entityTable = (QTableWidget *) vTable.value<void *>();
+    // Get the item of the selected entity header
+    QTableWidgetItem *item = entityTable->verticalHeaderItem(vIndex.toInt());
+
+    // Get a pointer to the entity hitself
+    QVariant vEntity = item->data(Qt::UserRole);
+    if ( ! vEntity.isValid())
+    {
+        delete editor;
+        return;
+    }
+    Atelier *entity = (Atelier *)vEntity.value<void *>();
+
+    // Update the entity name into the Atelier
+    entity->setName(editor->text());
+    // Update the entity name into the table
+    item->setText( editor->text() );
+
+    delete editor;
+}
+
+/**
+ * @brief Slot called to show context menu on vertical table header (right click)
+ *
+ * @param pos Mouse click position into header
+ */
+void widgetAtelier::slotNamesMenu(const QPoint &pos)
+{
+    QHeaderView *headerView = qobject_cast<QHeaderView*>( sender() );
+    if (headerView == 0)
+        return;
+
+    QTableWidget *entityTable = qobject_cast<QTableWidget*>( headerView->parent() );
+    if (entityTable == 0)
+        return;
+
+    // Search the associated Atelier
+    QVariant vAtelier = entityTable->property("atelier");
+    if ( ! vAtelier.isValid())
+        return;
+    Atelier *atelier = (Atelier *) vAtelier.value<void *>();
+
+    int selectedRow = headerView->logicalIndexAt(pos);
+
+    QMenu ctxMenu(this);
+    QAction *actionAdd = ctxMenu.addAction(tr("Add entity"));
+    QAction *actionRemove = 0;
+    if (selectedRow >= 0)
+        actionRemove = ctxMenu.addAction(tr("Remove entity"));
+
+    QAction *selectedAction = ctxMenu.exec(QCursor::pos());
+
+    // If the menu is closed without any action selected
+    if (selectedAction == 0)
+    {
+        // Nothing selected, nothing to do
+    }
+    // If the "Add" action has been selected
+    else if (selectedAction == actionAdd)
+    {
+        Atelier *entity = atelier->addEntity();
+        entity->setName("NewEntity");
+
+        addEntity(entityTable, entity);
+    }
+    // If the "Remove" action has been selected
+    else if (selectedAction == actionRemove)
+    {
+        // Remove the selected entity from Atelier
+        atelier->removeEntity(selectedRow);
+        // Remove the selected entity from table
+        entityTable->removeRow(selectedRow);
     }
 }
 

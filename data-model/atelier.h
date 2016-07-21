@@ -22,9 +22,10 @@ public:
     void setName(const QString &name);
     void dump(void);
     // Entities
-    Atelier *addEntity  (void);
-    int      countEntity(void);
-    Atelier *getEntity  (int index);
+    Atelier *addEntity   (void);
+    int      countEntity (void);
+    Atelier *getEntity   (int index);
+    void     removeEntity(int index);
     // Parameters
     void addParameter(const QString &name, double initialValue);
     void addParameter(AtelierParameter *parameter);
