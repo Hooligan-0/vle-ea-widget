@@ -204,8 +204,12 @@ void Atelier::delParameter(int index)
         entity->delParameter(index);
     }
 
+    AtelierParameter *oldParameter = mParameters.at(index);
+
     // Remove the selected parameter into the local parameter list
     mParameters.removeAt(index);
+
+    delete oldParameter;
 }
 
 /**

@@ -16,6 +16,7 @@
 
 /**
  * @brief Default constructor for Atelier widget
+ *
  * @param parent
  */
 widgetAtelier::widgetAtelier(QWidget *parent) : QWidget(parent)
@@ -25,6 +26,7 @@ widgetAtelier::widgetAtelier(QWidget *parent) : QWidget(parent)
 
 /**
  * @brief Initialize widget for a specific Exploitation
+ *
  * @param exploitation Pointer to the Exploitation
  * @return boolean True if init success
  */
@@ -51,6 +53,12 @@ bool widgetAtelier::setup(Exploitation *exploitation)
     return true;
 }
 
+/**
+ * @brief Insert a new entity to the table
+ *
+ * @param table  Pointer to the table widget to modify
+ * @param entity Pointer to the entity to add
+ */
 void widgetAtelier::addEntity(QTableWidget *table, Atelier *entity)
 {
     // Insert a new row at the bottom of the table
@@ -76,6 +84,7 @@ void widgetAtelier::addEntity(QTableWidget *table, Atelier *entity)
 
 /**
  * @brief Create and insert a new tab for an Atelier
+ *
  * @param atelier Pointer to the Atelier
  */
 void widgetAtelier::addTab(Atelier *atelier)
@@ -151,6 +160,7 @@ void widgetAtelier::addTab(Atelier *atelier)
 
 /**
  * @brief Slot called when the value of a cell is modified
+ *
  * @param row Position (row) of the modified cell
  * @param col Position (column) of the modified cell
  */
@@ -314,6 +324,9 @@ void widgetAtelier::slotHeaderMenu(const QPoint &pos)
         // Create a new parameter into this Atelier
         atelier->addParameter("NewParameter", 0);
 
+        // Send a message to inform the world that a new parameter has been added
+        emit parameterAdded(atelier, (atelier->countParameter() - 1) );
+
         // Insert a new column to the table
         QTableWidgetItem *item = new QTableWidgetItem();
         item->setFlags ( Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable );
@@ -336,9 +349,6 @@ void widgetAtelier::slotHeaderMenu(const QPoint &pos)
             QVariant vEntity = qVariantFromValue((void *)entity);
             item->setData(Qt::UserRole, vEntity);
         }
-
-        // Send a message to inform the world that a new parameter has been added
-        emit parameterAdded(atelier, (atelier->countParameter() - 1) );
     }
     // If the "Remove" action has been selected
     else if (selectedAction == actionRemove)
@@ -482,10 +492,10 @@ void widgetAtelier::slotNamesMenu(const QPoint &pos)
         Atelier *entity = atelier->addEntity();
         entity->setName("NewEntity");
 
-        addEntity(entityTable, entity);
-
         // Send a message to inform the world that a new entity has been added
         emit entityAdded(atelier, (atelier->countEntity() - 1));
+
+        addEntity(entityTable, entity);
     }
     // If the "Remove" action has been selected
     else if (selectedAction == actionRemove)
