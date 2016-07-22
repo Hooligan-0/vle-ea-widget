@@ -9,6 +9,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include "data-model/atelier.h"
 #include "data-model/exploitation.h"
 
 namespace Ui {
@@ -22,6 +23,18 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
+
+protected:
+    void loadTestData(void);
+
+public slots:
+    void entityAdded         (Atelier *entity,  int index);
+    void entityDeleted       (Atelier *atelier, int index);
+    void entityNameChanged   (Atelier *entity);
+    void entityValueChanged  (Atelier *entity,  int index, long value);
+    void parameterAdded      (Atelier *atelier, int index);
+    void parameterDeleted    (Atelier *atelier, int index);
+    void parameterNameChanged(Atelier *atelier, int index);
 
 private:
     Ui::MainWindow *ui;

@@ -123,12 +123,19 @@ Atelier *Atelier::getEntity(int index)
     return mEntities.at(index);
 }
 
+/**
+ * @brief Remove one entity from current Atelier
+ *
+ * @param index Index of the entity to remove
+ */
 void Atelier::removeEntity(int index)
 {
     if (index > (mEntities.count() - 1))
         return;
 
+    Atelier *oldEntity = mEntities.at(index);
     mEntities.removeAt(index);
+    delete oldEntity;
 }
 
 /**
@@ -254,6 +261,26 @@ void Atelier::setParameterMandatory(int index)
         return;
 
     mParameters.at(index)->setMandatory();
+}
+
+/**
+ * @brief Set the name of a parameter (rename it)
+ *
+ * @param index
+ * @param name New name to set
+ */
+void Atelier::setParameterName(int index, QString &name)
+{
+    if (index > (mParameters.count() - 1))
+        return;
+
+    mParameters.at(index)->setName(name);
+
+    if ( ! mEntities.isEmpty())
+    {
+        for (int i = 0; i < mEntities.count(); i++)
+            mEntities.at(i)->setParameterName(index, name);
+    }
 }
 
 /**

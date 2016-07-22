@@ -106,6 +106,7 @@ void widgetAtelier::addTab(Atelier *atelier)
     {
         QTableWidgetItem *item = new QTableWidgetItem();
         item->setText( atelier->getParameterName(i) );
+        item->setData(Qt::UserRole, qVariantFromValue((void *)atelier));
         if (atelier->isParameterMandatory(i))
             item->setFlags( item->flags() ^ Qt::ItemIsEditable);
         else
@@ -175,6 +176,9 @@ void widgetAtelier::slotCellChanged(int row, int col)
 
     // Update the entity parameter with the new value
     entity->setParameterValue(col, newValue);
+
+    // Send a message to inform the world that a value has been updated
+    emit entityValueChanged(entity, col, newValue);
 }
 
 /**
@@ -239,7 +243,26 @@ void widgetAtelier::slotHeaderEditEnd(void)
     QTableWidget *entityTable = (QTableWidget *) vTable.value<void *>();
     QTableWidgetItem *item = entityTable->horizontalHeaderItem(vIndex.toInt());
 
-    item->setText( editor->text() );
+    // Get a pointer to the associated Atelier
+    QVariant vAtelier = item->data(Qt::UserRole);
+    if ( ! vAtelier.isValid())
+    {
+        delete editor;
+        return;
+    }
+    Atelier *atelier = (Atelier *)vAtelier.value<void *>();
+
+    int index = vIndex.toInt();
+
+    QString newName(editor->text());
+
+    // Update the parameter name into Atelier
+    atelier->setParameterName(index, newName);
+    // Update the parameter name into the table
+    item->setText( newName );
+
+    // Send a message to inform the world that a parameter has been renamed
+    emit parameterNameChanged(atelier, index);
 
     delete editor;
 }
@@ -295,6 +318,7 @@ void widgetAtelier::slotHeaderMenu(const QPoint &pos)
         QTableWidgetItem *item = new QTableWidgetItem();
         item->setFlags ( Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable );
         item->setText("NewParameter");
+        item->setData(Qt::UserRole, qVariantFromValue((void *)atelier));
         int pos = entityTable->columnCount();
         // Increment the number of columns into table
         entityTable->setColumnCount( pos + 1);
@@ -312,6 +336,9 @@ void widgetAtelier::slotHeaderMenu(const QPoint &pos)
             QVariant vEntity = qVariantFromValue((void *)entity);
             item->setData(Qt::UserRole, vEntity);
         }
+
+        // Send a message to inform the world that a new parameter has been added
+        emit parameterAdded(atelier, (atelier->countParameter() - 1) );
     }
     // If the "Remove" action has been selected
     else if (selectedAction == actionRemove)
@@ -320,6 +347,9 @@ void widgetAtelier::slotHeaderMenu(const QPoint &pos)
         atelier->delParameter(selectedColumn);
         // Remove the selected column into the table widget
         entityTable->removeColumn(selectedColumn);
+
+        // Send a message to inform the world that a parameter has been deleted
+        emit parameterDeleted(atelier, selectedColumn);
     }
 }
 
@@ -404,6 +434,9 @@ void widgetAtelier::slotNamesEditEnd (void)
     // Update the entity name into the table
     item->setText( editor->text() );
 
+    // Send a message to inform the world that an entity has been renamed
+    emit entityNameChanged(entity);
+
     delete editor;
 }
 
@@ -450,6 +483,9 @@ void widgetAtelier::slotNamesMenu(const QPoint &pos)
         entity->setName("NewEntity");
 
         addEntity(entityTable, entity);
+
+        // Send a message to inform the world that a new entity has been added
+        emit entityAdded(atelier, (atelier->countEntity() - 1));
     }
     // If the "Remove" action has been selected
     else if (selectedAction == actionRemove)
@@ -458,6 +494,9 @@ void widgetAtelier::slotNamesMenu(const QPoint &pos)
         atelier->removeEntity(selectedRow);
         // Remove the selected entity from table
         entityTable->removeRow(selectedRow);
+
+        // Send a message to inform the world that an entity has been deleted
+        emit entityDeleted(atelier, selectedRow);
     }
 }
 

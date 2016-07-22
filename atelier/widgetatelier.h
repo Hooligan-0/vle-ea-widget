@@ -27,6 +27,13 @@ private:
     void addTab(Atelier *atelier);
 
 signals:
+    void entityAdded         (Atelier *atelier, int index);
+    void entityDeleted       (Atelier *atelier, int index);
+    void entityNameChanged   (Atelier *entity);
+    void entityValueChanged  (Atelier *entity,  int index, long value);
+    void parameterAdded      (Atelier *atelier, int index);
+    void parameterDeleted    (Atelier *atelier, int index);
+    void parameterNameChanged(Atelier *atelier, int index);
 
 public slots:
 

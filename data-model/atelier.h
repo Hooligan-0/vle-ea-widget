@@ -36,6 +36,7 @@ public:
     bool    isParameterMandatory(int index);
     void    setParameterValue(int index, double value);
     void    setParameterMandatory(int index);
+    void    setParameterName(int index, QString &name);
 private:
     QString mName;
     QList<AtelierParameter *> mParameters;
