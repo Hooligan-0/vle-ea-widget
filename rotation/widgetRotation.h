@@ -8,10 +8,10 @@
 #ifndef WIDGETROTATION_H
 #define WIDGETROTATION_H
 
-#include <QWidget>
+#include <QTreeWidget>
 #include "data-model/exploitation.h"
 
-class widgetRotation : public QWidget
+class widgetRotation : public QTreeWidget
 {
     Q_OBJECT
 public:

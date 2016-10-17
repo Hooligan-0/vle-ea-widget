@@ -9,6 +9,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include "data-model/exploitation.h"
 
 namespace Ui {
 class MainWindow;
@@ -22,8 +23,12 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
+protected:
+    void loadTest(void);
+
 private:
     Ui::MainWindow *ui;
+    Exploitation mExploitation;
 };
 
 #endif // MAINWINDOW_H

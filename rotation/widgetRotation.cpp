@@ -14,9 +14,11 @@
  *
  * @param parent
  */
-widgetRotation::widgetRotation(QWidget *parent) : QWidget(parent)
+widgetRotation::widgetRotation(QWidget *parent) : QTreeWidget(parent)
 {
     mExploitation = 0;
+
+    setHeaderHidden(true);
 }
 
 /**
