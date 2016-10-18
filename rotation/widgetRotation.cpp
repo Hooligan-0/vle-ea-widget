@@ -5,8 +5,7 @@
  *
  * Copyright (c) 2016 Agilack
  */
-#include <QVBoxLayout>
-#include <QWidget>
+#include <QTreeWidgetItem>
 #include "widgetRotation.h"
 
 /**
@@ -18,7 +17,13 @@ widgetRotation::widgetRotation(QWidget *parent) : QTreeWidget(parent)
 {
     mExploitation = 0;
 
-    setHeaderHidden(true);
+    // Create two columns by setting her names
+    headerItem()->setText(0, "Name");
+    headerItem()->setText(1, " ");
+
+    // Insert a global root item for the tree
+    QTreeWidgetItem *root = new QTreeWidgetItem(this);
+    root->setText(0, "Rotations");
 }
 
 /**
@@ -33,14 +38,34 @@ bool widgetRotation::setup(Exploitation *exploitation)
         return false;
     mExploitation = exploitation;
 
-    // Create an empty widget
-    QWidget *tree = new QWidget(this);
-    tree->setObjectName("rotationTree");
+    QTreeWidgetItem *root = topLevelItem(0);
 
-    QVBoxLayout *layout = new QVBoxLayout;
-    layout->addWidget(tree);
-    setLayout(layout);
-    show();
+    // Insert all Rotation(s) of the Exploitation
+    for (uint i = 0; i < mExploitation->countRotation(); ++i)
+    {
+        Rotation *rot = mExploitation->getRotation(i);
+        // Create a tree-item for this Rotation
+        QTreeWidgetItem *newItem = new QTreeWidgetItem();
+        newItem->setText(0, rot->getName());
+        newItem->setText(1, QString("%1 an(s)").arg(rot->getDuration()));
+
+        // Insert the activity plans of this Rotation
+        for (uint j = 0; j < rot->countPlans(); ++j)
+        {
+            ActivityPlan *plan = rot->getPlan(j);
+            QTreeWidgetItem *planItem = new QTreeWidgetItem();
+            planItem->setText(0, plan->getName());
+            planItem->setText(1, QString("année %1").arg(plan->getPosition()));
+
+            // Insert it as sub-tree of current Rotation item
+            newItem->addChild(planItem);
+        }
+        // Insert this Rotation as child of the root item
+        root->addChild(newItem);
+    }
+    root->setExpanded(true);
+    resizeColumnToContents(0);
+
     return true;
 }
 
