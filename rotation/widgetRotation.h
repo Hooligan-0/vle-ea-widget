@@ -21,9 +21,24 @@ public:
 public slots:
 
 private slots:
+    void slotItemEdit(QTreeWidgetItem *item, int column);
+    void slotItemChanged(QTreeWidgetItem *item, int column);
 
 private:
     Exploitation *mExploitation;
+};
+
+#include <QStyledItemDelegate>
+
+class widgetRotationDelegate : public QStyledItemDelegate
+{
+Q_OBJECT
+
+public:
+    widgetRotationDelegate(QObject* parent = 0);
+    QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+    void setEditorData(QWidget *editor, const QModelIndex &index) const;
+    void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const;
 };
 
 #endif // WIDGETROTATION_H
