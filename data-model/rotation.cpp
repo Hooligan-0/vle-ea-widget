@@ -37,7 +37,9 @@ Rotation::~Rotation()
 ActivityPlan *Rotation::addPlan(ulong position, const QString &name)
 {
     // Create a new ActivityPlan
-    ActivityPlan *newPlan = new ActivityPlan(position, name);
+    ActivityPlan *newPlan = new ActivityPlan(this);
+    newPlan->setName(name);
+    newPlan->setPosition(position);
     // Insert it to the current Rotation
     mPlans.push_back(newPlan);
     // ... and return it
@@ -102,17 +104,44 @@ ActivityPlan *Rotation::getPlan(int index)
 /**
  * @brief Remove one activity plan from Rotation
  *
+ * @param plan Pointer to the plan to remove
+ */
+bool Rotation::removePlan(ActivityPlan *plan)
+{
+    bool result = false;
+
+    for (int i = 0; i < mPlans.size(); ++i)
+    {
+        if (mPlans.at(i) == plan)
+        {
+            // Remove item at current position from the list
+            mPlans.removeAt(i);
+            // Delete it
+            delete plan;
+
+            result = true;
+            break;
+        }
+    }
+    return result;
+}
+
+/**
+ * @brief Remove one activity plan from Rotation
+ *
  * @param index Index of the plan to remove
  */
-void Rotation::removePlan(int index)
+bool Rotation::removePlan(int index)
 {
     if (index > (mPlans.count() - 1))
-        return;
+        return false;
 
     // Take the specified activity plan from Rotation
     ActivityPlan *p = mPlans.takeAt(index);
     // Delete it
     delete p;
+
+    return true;
 }
 
 /**
@@ -137,10 +166,9 @@ void Rotation::setName(const QString &name)
 
 // -------------------- Activity Plans --------------------
 
-ActivityPlan::ActivityPlan(ulong position, const QString &name)
+ActivityPlan::ActivityPlan(Rotation *parent)
 {
-    mPosition = position;
-    mName = name;
+    mParent = parent;
 }
 
 QString ActivityPlan::getName(void)
@@ -151,6 +179,11 @@ QString ActivityPlan::getName(void)
 ulong ActivityPlan::getPosition(void)
 {
     return mPosition;
+}
+
+Rotation *ActivityPlan::parent(void)
+{
+    return mParent;
 }
 
 void ActivityPlan::setName(const QString &name)

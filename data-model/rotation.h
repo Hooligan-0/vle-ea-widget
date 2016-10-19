@@ -25,7 +25,8 @@ public:
     ulong getDuration(void);
     const QString &getName(void);
     ActivityPlan *getPlan(int index);
-    void removePlan(int index);
+    bool removePlan(ActivityPlan *plan);
+    bool removePlan(int index);
     void setDuration(ulong duration);
     void setName(const QString &name);
 private:
@@ -37,14 +38,16 @@ private:
 class ActivityPlan
 {
 public:
-    explicit ActivityPlan(ulong position, const QString &name);
-    QString getName(void);
-    ulong   getPosition(void);
-    void    setName(const QString &name);
-    void    setPosition(ulong position);
+    explicit  ActivityPlan(Rotation *parent);
+    QString   getName(void);
+    ulong     getPosition(void);
+    Rotation *parent(void);
+    void      setName(const QString &name);
+    void      setPosition(ulong position);
 private:
-    ulong   mPosition;
-    QString mName;
+    Rotation *mParent;
+    ulong     mPosition;
+    QString   mName;
 };
 
 #endif // ROTATION_H
