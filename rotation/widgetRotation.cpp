@@ -5,8 +5,9 @@
  *
  * Copyright (c) 2016 Agilack
  */
+#include <QDebug>
 #include <QLineEdit>
-#include <QTreeWidgetItem>
+#include <QMenu>
 #include "widgetRotation.h"
 
 /**
@@ -25,6 +26,11 @@ widgetRotation::widgetRotation(QWidget *parent) : QTreeWidget(parent)
     // Insert a global root item for the tree
     QTreeWidgetItem *root = new QTreeWidgetItem(this);
     root->setText(0, "Rotations");
+
+    // Init a context menu handler
+    setContextMenuPolicy(Qt::CustomContextMenu);
+    QObject::connect(this, SIGNAL(customContextMenuRequested(QPoint)     ),
+                     this, SLOT  (slotMenu(QPoint))                      );
 
     setItemDelegate(new widgetRotationDelegate(this));
 
@@ -142,6 +148,76 @@ void widgetRotation::slotItemEdit(QTreeWidgetItem *item, int column)
         return;
 
     editItem(item, column);
+}
+
+/**
+ * @brief Slot called to show context menu (right click)
+ *
+ * @param pos Mouse click position
+ */
+void widgetRotation::slotMenu(const QPoint &pos)
+{
+    if (mExploitation == 0)
+        return;
+
+    Rotation     *rot  = 0;
+    ActivityPlan *plan = 0;
+
+    QTreeWidgetItem *item = itemAt(pos);
+    if (item)
+    {
+        QVariant vRotation = item->data(0, Qt::UserRole);
+        QVariant vPlan     = item->data(0, Qt::UserRole + 1);
+        if (vRotation.isValid())
+            rot = (Rotation *)vRotation.value<void *>();
+        else if (vPlan.isValid())
+            plan = (ActivityPlan *)vPlan.value<void *>();
+        else
+            item = 0;
+    }
+
+    // Create a menu
+    QMenu ctxMenu(this);
+    // Create menu entries for Rotation handling
+    QAction *actAddRotation = ctxMenu.addAction(tr("Add Rotation"));
+    QAction *actDelRotation = ctxMenu.addAction(tr("Remove Rotation"));
+    if (rot == 0)
+        actDelRotation->setEnabled(false);
+    // Insert a separator between Rotation and Plan actions
+    ctxMenu.addSeparator();
+    // Create menu entries for Activity Plan handling
+    QAction *actAddPlan = ctxMenu.addAction(tr("Add Plan"));
+    QAction *actDelPlan = ctxMenu.addAction(tr("Remove Plan"));
+    if (item == 0)
+        actAddPlan->setEnabled(false);
+    if (plan == 0)
+        actDelPlan->setEnabled(false);
+
+    QAction *selectedAction = ctxMenu.exec(QCursor::pos());
+
+    // If the menu "Add Rotation" is selected
+    if (selectedAction == actAddRotation)
+    {
+        Rotation *newRot = mExploitation->createRotation(tr("NewRotation"), 0);
+        // Create a tree-item for this Rotation
+        QTreeWidgetItem *newItem = new QTreeWidgetItem();
+        newItem->setFlags( newItem->flags() |  Qt::ItemIsEditable);
+        newItem->setText(0, newRot->getName());
+        newItem->setText(1, QString("%1 an(s)").arg(newRot->getDuration()));
+        newItem->setData(0, Qt::UserRole, qVariantFromValue((void*)newRot));
+        newItem->setData(1, Qt::UserRole, qVariantFromValue((void*)newRot));
+        // Insert this Rotation as child of the root item
+        topLevelItem(0)->addChild(newItem);
+    }
+    // If the menu "Remove rotation" is selected
+    else if (selectedAction == actDelRotation)
+        qWarning() << "Not Implemented yet";
+    // If the menu "Add Plan" is selected
+    else if (selectedAction == actAddPlan)
+        qWarning() << "Not Implemented yet";
+    // If the menu "Remove Plan" is selected
+    else if (selectedAction == actDelPlan)
+        qWarning() << "Not Implemented yet";
 }
 
 // -------------------- Delegate --------------------

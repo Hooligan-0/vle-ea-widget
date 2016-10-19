@@ -8,7 +8,9 @@
 #ifndef WIDGETROTATION_H
 #define WIDGETROTATION_H
 
+#include <QPoint>
 #include <QTreeWidget>
+#include <QTreeWidgetItem>
 #include "data-model/exploitation.h"
 
 class widgetRotation : public QTreeWidget
@@ -21,8 +23,9 @@ public:
 public slots:
 
 private slots:
-    void slotItemEdit(QTreeWidgetItem *item, int column);
     void slotItemChanged(QTreeWidgetItem *item, int column);
+    void slotItemEdit(QTreeWidgetItem *item, int column);
+    void slotMenu(const QPoint &pos);
 
 private:
     Exploitation *mExploitation;
