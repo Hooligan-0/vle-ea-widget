@@ -211,13 +211,57 @@ void widgetRotation::slotMenu(const QPoint &pos)
     }
     // If the menu "Remove rotation" is selected
     else if (selectedAction == actDelRotation)
-        qWarning() << "Not Implemented yet";
+    {
+        // Remove the selected Rotation from the Exploitation
+        if ( mExploitation->removeRotation(rot) )
+        {
+            // Remove the selected item from the tree
+            topLevelItem(0)->removeChild(item);
+            // Delete it (not freed when removed from tree)
+            delete item;
+            item = 0; // Set to NULL to avoid using this pointer after (debug)
+        }
+    }
     // If the menu "Add Plan" is selected
     else if (selectedAction == actAddPlan)
-        qWarning() << "Not Implemented yet";
+    {
+        QTreeWidgetItem *rotationItem;
+        if (rot)
+            rotationItem = item;
+        else
+        {
+            rot = plan->parent();
+            rotationItem = item->parent();
+        }
+
+        // Create a new ActivityPlan into the Exploitation
+        ActivityPlan *newPlan = rot->addPlan(0, tr("NewActivityPlan"));
+
+        // Create a new tree item
+        QTreeWidgetItem *newItem = new QTreeWidgetItem();
+        newItem->setText(0, newPlan->getName());
+        newItem->setText(1, QString("année %1").arg(newPlan->getPosition()));
+        newItem->setFlags( newItem->flags() |  Qt::ItemIsEditable);
+        newItem->setData(0, Qt::UserRole + 1, qVariantFromValue((void *)newPlan));
+        newItem->setData(1, Qt::UserRole + 1, qVariantFromValue((void *)newPlan));
+        // Insert it as child of the selected Rotation
+        rotationItem->addChild(newItem);
+    }
     // If the menu "Remove Plan" is selected
     else if (selectedAction == actDelPlan)
-        qWarning() << "Not Implemented yet";
+    {
+        QTreeWidgetItem *rotationItem = item->parent();
+        rot = plan->parent();
+
+        if ( rot->removePlan(plan) )
+        {
+            // Remove the selected item from the tree widget
+            rotationItem->removeChild(item);
+            // Delete it (not freed when removed from tree)
+            delete item;
+            item = 0; // Set to NULL to avoid using this pointer after (debug)
+        }
+    }
 }
 
 // -------------------- Delegate --------------------
