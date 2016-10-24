@@ -8,6 +8,7 @@
 #ifndef WIDGETPARAMETER_H
 #define WIDGETPARAMETER_H
 
+#include <QStyledItemDelegate>
 #include <QTableWidget>
 #include "data-model/exploitation.h"
 
@@ -21,9 +22,25 @@ public:
 public slots:
 
 private slots:
+    void slotCellChanged(int row, int col);
+    void slotContextMenu(const QPoint &pos);
+
+protected:
 
 private:
     Exploitation *mExploitation;
+    double        mDefaultValue;
+};
+
+class widgetParameterDelegate : public QStyledItemDelegate
+{
+Q_OBJECT
+
+public:
+    widgetParameterDelegate(QObject* parent = 0);
+    QWidget *createEditor (QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+    void     setEditorData(QWidget *editor, const QModelIndex &index) const;
+    void     setModelData (QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const;
 };
 
 #endif // WIDGETPARAMETER_H

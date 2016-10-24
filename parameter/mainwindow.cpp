@@ -5,6 +5,7 @@
  *
  * Copyright (c) 2016 Agilack
  */
+#include <QDebug>
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
@@ -30,6 +31,12 @@ MainWindow::MainWindow(QWidget *parent) :
  */
 MainWindow::~MainWindow()
 {
+    qWarning() << "--=={ Dump Global Parameter List }==--";
+    for (uint i = 0; i < mExploitation.countParameter(); ++i)
+    {
+        Parameter *p = mExploitation.getParameter(i);
+        qWarning() << " -" << p->getName() << "=" << p->getValue();
+    }
     delete ui;
 }
 
@@ -39,5 +46,5 @@ MainWindow::~MainWindow()
  */
 void MainWindow::loadTestData(void)
 {
-    // ToDo
+    mExploitation.setParameter("Vitesse", 3.14);
 }

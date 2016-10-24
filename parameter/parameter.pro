@@ -19,12 +19,14 @@ SOURCES += main.cpp \
         widgetParameter.cpp \
         ../data-model/exploitation.cpp \
         ../data-model/atelier.cpp \
-        ../data-model/rotation.cpp
+        ../data-model/rotation.cpp \
+    ../data-model/parameter.cpp
 
 HEADERS  += mainwindow.h \
             widgetParameter.h \
             ../data-model/exploitation.h \
             ../data-model/atelier.h \
-            ../data-model/rotation.h
+            ../data-model/rotation.h \
+    ../data-model/parameter.h
 
 FORMS    += mainwindow.ui
