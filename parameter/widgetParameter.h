@@ -19,7 +19,11 @@ public:
     explicit widgetParameter(QWidget *parent = 0);
     bool     setup(Exploitation *exploitation);
 
-public slots:
+signals:
+    void added        (Parameter *param);
+    void removed      (const QString &name, double value);
+    void renamed      (Parameter *param, const QString &oldName, const QString &newName);
+    void valueChanged (Parameter *param, double oldValue, double newValue);
 
 private slots:
     void slotCellChanged(int row, int col);

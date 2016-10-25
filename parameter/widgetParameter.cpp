@@ -106,13 +106,25 @@ void widgetParameter::slotCellChanged(int row, int col)
 
     // The column "0" contains parameter names
     if (col == 0)
+    {
+        QString oldName( p->getName() );
+        QString newName( selectedItem->text() );
         // Update the parameter name
-        p->setName( selectedItem->text() );
+        p->setName( newName );
+        // Send a message to inform the world that a parameter has been renamed
+        emit renamed(p, oldName, newName);
+    }
 
     // The column "1" contains parameter value
     if (col == 1)
+    {
+        double oldValue = p->getValue();
+        double newValue = selectedItem->text().toDouble();
         // Update the parameter value
-        p->setValue( selectedItem->text().toDouble() );
+        p->setValue( newValue );
+        // Send a message to inform the world that a value has been modified
+        emit valueChanged(p, oldValue, newValue);
+    }
 }
 
 /**
@@ -138,6 +150,9 @@ void widgetParameter::slotContextMenu(const QPoint &pos)
     {
         Parameter *param = mExploitation->addParameter("NewParam");
         param->setValue(mDefaultValue);
+
+        // Send a message to inform the world that a new parameter has been added
+        emit added(param);
 
         // Insert a new row at the bottom of the table
         int rowPos = rowCount();
@@ -165,6 +180,10 @@ void widgetParameter::slotContextMenu(const QPoint &pos)
         if (vParameter.isValid())
         {
             Parameter *p = (Parameter *)vParameter.value<void *>();
+
+            // Send a message to inform the world that a parameter is removed
+            emit removed(p->getName(), p->getValue());
+
             if (mExploitation->removeParameter(p))
                 removeRow( clickedItem->row() );
         }

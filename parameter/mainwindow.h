@@ -23,6 +23,12 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
+public slots:
+    void slotAdded        (Parameter *param);
+    void slotRemoved      (const QString &name, double value);
+    void slotRenamed      (Parameter *param, const QString &oldName, const QString &newName);
+    void slotValueChanged (Parameter *param, double oldValue, double newValue);
+
 protected:
     void loadTestData(void);
 
