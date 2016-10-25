@@ -20,7 +20,15 @@ public:
     explicit widgetRotation(QWidget *parent = 0);
     bool     setup(Exploitation *exploitation);
 
-public slots:
+signals:
+    void durationChanged(Rotation *rot, ulong oldDuration, ulong newDuration);
+    void planAdded      (ActivityPlan *plan);
+    void planDeleted    (Rotation *rot, const QString &name, ulong position);
+    void planRenamed    (ActivityPlan *plan, const QString &oldName, const QString &newName);
+    void positionChanged(ActivityPlan *plan, ulong oldPosition, ulong newPosition);
+    void rotationAdded  (Rotation *rot);
+    void rotationDeleted(const QString &name, ulong duration);
+    void rotationRenamed(Rotation *rot, const QString &oldName, const QString &newName);
 
 private slots:
     void slotItemChanged(QTreeWidgetItem *item, int column);

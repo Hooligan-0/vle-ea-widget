@@ -5,7 +5,6 @@
  *
  * Copyright (c) 2016 Agilack
  */
-#include <QDebug>
 #include <QLineEdit>
 #include <QMenu>
 #include "widgetRotation.h"
@@ -107,14 +106,26 @@ void widgetRotation::slotItemChanged(QTreeWidgetItem *item, int column)
         Rotation *rot = (Rotation *)vRotation.value<void *>();
         // If the modifed column is the first, update Rotation name
         if (column == 0)
+        {
+            QString oldName( rot->getName() );
+            QString newName( item->text(0)  );
+            // Update the rotation name
             rot->setName( item->text(0) );
+            // Send a message to inform the world that the rotation has been renamed
+            emit rotationRenamed(rot, oldName, newName);
+        }
         // Is the modified column is the second, update Rotation duration
         else if (column == 1)
         {
             bool valid;
-            int duration = item->text(1).toInt(&valid);
+            ulong oldDuration = rot->getDuration();
+            ulong duration = item->text(1).toLong(&valid);
             if (valid)
+            {
                 rot->setDuration(duration);
+                // Send a message to inform the world that the rotation have a new duration
+                emit durationChanged(rot, oldDuration, duration);
+            }
         }
     }
     else if (vPlan.isValid())
@@ -122,14 +133,27 @@ void widgetRotation::slotItemChanged(QTreeWidgetItem *item, int column)
         ActivityPlan *plan = (ActivityPlan *)vPlan.value<void *>();
         // If the modifed column is the first, update Plan name
         if (column == 0)
+        {
+            QString oldName( plan->getName() );
+            QString newName( item->text(0)   );
+            // Update the ActivityPlan name
             plan->setName( item->text(0) );
+            // Send a message to inform the world that the plan has been renamed
+            emit planRenamed(plan, oldName, newName);
+        }
         // Is the modified column is the second, update Rotation duration
         else if (column == 1)
         {
             bool valid;
-            int position = item->text(1).toInt(&valid);
+            ulong position = item->text(1).toLong(&valid);
             if (valid)
+            {
+                ulong old = plan->getPosition();
+                // Update the position of the plan
                 plan->setPosition(position);
+                // Send a message to inform the world that the plan has a new position
+                emit positionChanged(plan, old, position);
+            }
         }
     }
 }
@@ -199,6 +223,8 @@ void widgetRotation::slotMenu(const QPoint &pos)
     if (selectedAction == actAddRotation)
     {
         Rotation *newRot = mExploitation->createRotation(tr("NewRotation"), 0);
+        // Send a message to inform the world that a new rotation has been added
+        emit rotationAdded(newRot);
         // Create a tree-item for this Rotation
         QTreeWidgetItem *newItem = new QTreeWidgetItem();
         newItem->setFlags( newItem->flags() |  Qt::ItemIsEditable);
@@ -212,6 +238,9 @@ void widgetRotation::slotMenu(const QPoint &pos)
     // If the menu "Remove rotation" is selected
     else if (selectedAction == actDelRotation)
     {
+        QString rotName( rot->getName() );
+        ulong rotDuration = rot->getDuration();
+
         // Remove the selected Rotation from the Exploitation
         if ( mExploitation->removeRotation(rot) )
         {
@@ -220,6 +249,8 @@ void widgetRotation::slotMenu(const QPoint &pos)
             // Delete it (not freed when removed from tree)
             delete item;
             item = 0; // Set to NULL to avoid using this pointer after (debug)
+            // Send a message to inform the world that a rotation has been deleted
+            emit rotationDeleted(rotName, rotDuration);
         }
     }
     // If the menu "Add Plan" is selected
@@ -237,6 +268,9 @@ void widgetRotation::slotMenu(const QPoint &pos)
         // Create a new ActivityPlan into the Exploitation
         ActivityPlan *newPlan = rot->addPlan(0, tr("NewActivityPlan"));
 
+        // Send a message to inform the world that a new plan has been added
+        emit planAdded(newPlan);
+
         // Create a new tree item
         QTreeWidgetItem *newItem = new QTreeWidgetItem();
         newItem->setText(0, newPlan->getName());
@@ -253,6 +287,9 @@ void widgetRotation::slotMenu(const QPoint &pos)
         QTreeWidgetItem *rotationItem = item->parent();
         rot = plan->parent();
 
+        QString planName( plan->getName() );
+        ulong planPosition = plan->getPosition();
+
         if ( rot->removePlan(plan) )
         {
             // Remove the selected item from the tree widget
@@ -260,6 +297,8 @@ void widgetRotation::slotMenu(const QPoint &pos)
             // Delete it (not freed when removed from tree)
             delete item;
             item = 0; // Set to NULL to avoid using this pointer after (debug)
+            // Send a message to inform the world that a plan has been deleted
+            emit planDeleted(rot, planName, planPosition);
         }
     }
 }
