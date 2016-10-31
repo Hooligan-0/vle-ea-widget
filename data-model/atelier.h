@@ -20,7 +20,6 @@ public:
     ~Atelier();
     const QString &getName(void);
     void setName(const QString &name);
-    void dump(void);
     // Entities
     Atelier *addEntity   (void);
     int      countEntity (void);

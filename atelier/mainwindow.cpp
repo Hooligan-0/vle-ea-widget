@@ -54,6 +54,27 @@ MainWindow::MainWindow(QWidget *parent) :
  */
 MainWindow::~MainWindow()
 {
+    qWarning() << "--=={ Dump Atelier(s) Datas }==--";
+    for (uint i = 0; i < mExploitation.countAtelier(); ++i)
+    {
+        Atelier *a = mExploitation.getAtelier(i);
+
+        qWarning() << "    ======== Atelier" << a->getName() << "========";
+        for (int j = 0; j < a->countEntity(); ++j)
+        {
+            Atelier *entity = a->getEntity(j);
+            QString dbgLine("    ");
+            dbgLine += entity->getName() + " : ";
+            for (int k = 0; k < entity->countParameter(); ++k)
+            {
+                dbgLine += QString::number(entity->getParameterValue(k));
+                if (k != (entity->countParameter() - 1))
+                    dbgLine += " , ";
+            }
+            qWarning() << dbgLine.toStdString().c_str();
+        }
+    }
+
     delete ui;
 }
 
@@ -146,7 +167,7 @@ void MainWindow::parameterNameChanged(Atelier *atelier, int index)
  */
 void MainWindow::loadTestData(void)
 {
-    Atelier *a1 = mExploitation.atelierCreate("Grande culture");
+    Atelier *a1 = mExploitation.createAtelier("Grande culture");
     a1->addParameter("Profondeur", 4);
     a1->addParameter("Surface",   42);
     a1->setParameterMandatory(1);
@@ -160,7 +181,7 @@ void MainWindow::loadTestData(void)
     a1e2->setParameterValue(0, 128);
     a1e2->setParameterValue(1, 256);
 
-    Atelier *a2 = mExploitation.atelierCreate("Troupeau");
+    Atelier *a2 = mExploitation.createAtelier("Troupeau");
     a2->addParameter("Nombre", 0);
     Atelier * a2e1 = a2->addEntity();
     a2e1->setName("Bovins");
@@ -169,6 +190,6 @@ void MainWindow::loadTestData(void)
     a2e2->setName("Moutons");
     a2e2->setParameterValue(0,  130);
 
-    Atelier *a3 = mExploitation.atelierCreate("Maraichage");
+    Atelier *a3 = mExploitation.createAtelier("Maraichage");
     a3->addParameter("Surface", 0);
 }

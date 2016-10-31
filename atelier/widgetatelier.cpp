@@ -41,9 +41,9 @@ bool widgetAtelier::setup(Exploitation *exploitation)
     tabs->setObjectName("rootTabs");
 
     // Insert one tab for each Atelier
-    for (int i = 0; i < mExploitation->atelierCount(); ++i)
+    for (uint i = 0; i < mExploitation->countAtelier(); ++i)
     {
-        Atelier *a = mExploitation->atelierGet(i);
+        Atelier *a = mExploitation->getAtelier(i);
         addTab(a);
     }
     QVBoxLayout *layout = new QVBoxLayout;
