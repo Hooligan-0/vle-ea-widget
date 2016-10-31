@@ -31,7 +31,7 @@ public slots:
     void entityAdded         (Atelier *entity,  int index);
     void entityDeleted       (Atelier *atelier, int index);
     void entityNameChanged   (Atelier *entity);
-    void entityValueChanged  (Atelier *entity,  int index, long value);
+    void entityValueChanged  (Atelier *entity,  int index, double value);
     void parameterAdded      (Atelier *atelier, int index);
     void parameterDeleted    (Atelier *atelier, int index);
     void parameterNameChanged(Atelier *atelier, int index);

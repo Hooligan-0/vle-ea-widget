@@ -176,8 +176,8 @@ void widgetAtelier::slotCellChanged(int row, int col)
     if (item == 0)
         return;
 
-    // Get the new value and convert it to long
-    long newValue = item->text().toLong();
+    // Get the new value and convert it to double
+    double newValue = item->text().toDouble();
 
     // Get the associated entity
     Atelier *entity = (Atelier *) item->data(Qt::UserRole).value<void *>();
@@ -540,10 +540,10 @@ void widgetAtelierDelegate::setModelData(QWidget *editor, QAbstractItemModel *mo
 {
     QLineEdit *line = static_cast<QLineEdit*>(editor);
     QString value = line->text();
-    // Check if the new value is a 'long'
+    // Check if the new value is a 'double'
     bool valid;
-    value.toLong(&valid);
-    // Update the cell value only if the new value is a 'long'
+    value.toDouble(&valid);
+    // Update the cell value only if the new value is a 'double'
     if (valid)
         model->setData(index, value);
 }

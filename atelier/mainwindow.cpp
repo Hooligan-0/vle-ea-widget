@@ -33,8 +33,8 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(ui->AtelierWidget, SIGNAL(entityNameChanged(Atelier*)),
                      this,              SLOT  (entityNameChanged(Atelier*)));
     // Catch signal when one value of an entity is modified
-    QObject::connect(ui->AtelierWidget, SIGNAL(entityValueChanged(Atelier*,int,long)),
-                     this,              SLOT  (entityValueChanged(Atelier*,int,long)));
+    QObject::connect(ui->AtelierWidget, SIGNAL(entityValueChanged(Atelier*,int,double)),
+                     this,              SLOT  (entityValueChanged(Atelier*,int,double)));
     // Catch signal emited when a new parameter is added to an Atelier
     QObject::connect(ui->AtelierWidget, SIGNAL(parameterAdded(Atelier*,int)),
                      this,              SLOT  (parameterAdded(Atelier*,int)));
@@ -97,10 +97,12 @@ void MainWindow::entityNameChanged (Atelier *entity)
  * @param index  Index of the parameter
  * @param value  New value of the parameter
  */
-void MainWindow::entityValueChanged(Atelier *entity, int index, long value)
+void MainWindow::entityValueChanged(Atelier *entity, int index, double value)
 {
     QString pName(entity->getParameterName(index));
-    qWarning() << "Entity " << entity->getName() << " new value for parameter " << pName << " : " << value;
+    qWarning() << "Entity " << entity->getName()
+               << " new value for parameter " << pName
+               << ":" << value;
 }
 
 /**
