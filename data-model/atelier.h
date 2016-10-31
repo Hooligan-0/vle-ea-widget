@@ -10,6 +10,7 @@
 
 #include <QList>
 #include <QString>
+#include "rotation.h"
 
 class AtelierParameter;
 
@@ -32,12 +33,15 @@ public:
     void delParameter(int index);
     QString getParameterName(int index);
     double  getParameterValue(int index);
+    Rotation *getRotation(void);
     bool    isParameterMandatory(int index);
     void    setParameterValue(int index, double value);
     void    setParameterMandatory(int index);
     void    setParameterName(int index, QString &name);
+    void    setRotation(Rotation *rotation);
 private:
     QString mName;
+    Rotation *mRotation;
     QList<AtelierParameter *> mParameters;
     QList<Atelier *>          mEntities;
 };

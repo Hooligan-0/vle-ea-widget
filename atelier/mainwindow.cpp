@@ -167,16 +167,21 @@ void MainWindow::parameterNameChanged(Atelier *atelier, int index)
  */
 void MainWindow::loadTestData(void)
 {
+    Rotation *rotBio = mExploitation.createRotation("Culture Bio", 3);
+    Rotation *rotInt = mExploitation.createRotation("Intensif", 2);
+
     Atelier *a1 = mExploitation.createAtelier("Grande culture");
     a1->addParameter("Profondeur", 4);
     a1->addParameter("Surface",   42);
     a1->setParameterMandatory(1);
 
     Atelier * a1e1 = a1->addEntity();
+    a1e1->setRotation(rotBio);
     a1e1->setName("Champ de blé #1");
     a1e1->setParameterValue(0,  8);
     a1e1->setParameterValue(1, 16);
     Atelier * a1e2 = a1->addEntity();
+    a1e2->setRotation(rotInt);
     a1e2->setName("Tournesol");
     a1e2->setParameterValue(0, 128);
     a1e2->setParameterValue(1, 256);

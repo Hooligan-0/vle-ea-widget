@@ -15,6 +15,7 @@ Atelier::Atelier()
 {
     mName.clear();
     mEntities.clear();
+    mRotation = 0;
 }
 
 /**
@@ -53,6 +54,16 @@ Atelier::~Atelier()
 const QString &Atelier::getName(void)
 {
     return mName;
+}
+
+/**
+ * @brief Get the current Rotation used by the Atelier
+ *
+ * @return Pointer to the Rotation
+ */
+Rotation *Atelier::getRotation(void)
+{
+    return mRotation;
 }
 
 /**
@@ -277,6 +288,16 @@ void Atelier::setParameterValue(int index, double value)
 
     AtelierParameter *parameter = mParameters.at(index);
     parameter->setValue(value);
+}
+
+/**
+ * @brief Set the rotation used by this Atelier
+ *
+ * @param rotation Pointer to the Rotation to use
+ */
+void Atelier::setRotation(Rotation *rotation)
+{
+    mRotation = rotation;
 }
 
 // -------------------- Parameters --------------------

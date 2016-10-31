@@ -70,6 +70,13 @@ void widgetAtelier::addEntity(QTableWidget *table, Atelier *entity)
     hItem->setData(Qt::UserRole, qVariantFromValue((void *)entity));
     table->setVerticalHeaderItem(row, hItem);
 
+    // Set the Rotation name into the first data column
+    QTableWidgetItem *rItem = new QTableWidgetItem();
+    rItem->setFlags( rItem->flags() ^ Qt::ItemIsEditable);
+    if (entity->getRotation())
+        rItem->setText( entity->getRotation()->getName() );
+    table->setItem(row, 0, rItem);
+
     // Set parameters values
     for (int i = 0; i < entity->countParameter(); ++i)
     {
@@ -78,7 +85,7 @@ void widgetAtelier::addEntity(QTableWidget *table, Atelier *entity)
         // Save a pointer to the entity
         QVariant vEntity = qVariantFromValue((void *)entity);
         item->setData(Qt::UserRole, vEntity);
-        table->setItem(row, i, item);
+        table->setItem(row, i+1, item);
     }
 }
 
@@ -108,7 +115,13 @@ void widgetAtelier::addTab(Atelier *atelier)
     entityTable->verticalHeader()->setMinimumWidth(60);
 
     // Set table headers according to Atelier
-    entityTable->setColumnCount( atelier->countParameter() );
+    entityTable->setColumnCount( 1 + atelier->countParameter() );
+
+    // Insert column header for Rotation attribute
+    QTableWidgetItem *item = new QTableWidgetItem();
+    item->setFlags( item->flags() ^ Qt::ItemIsEditable);
+    item->setText(tr("Rotation"));
+    entityTable->setHorizontalHeaderItem(0, item);
 
     // Insert parameters names into horizontal header
     for (int i = 0; i < atelier->countParameter(); ++i)
@@ -120,7 +133,7 @@ void widgetAtelier::addTab(Atelier *atelier)
             item->setFlags( item->flags() ^ Qt::ItemIsEditable);
         else
             item->setFlags( item->flags() | Qt::ItemIsEditable);
-        entityTable->setHorizontalHeaderItem(i, item);
+        entityTable->setHorizontalHeaderItem(1+i, item);
     }
     // Catch signal for horizontal header context menu (parameters)
     QHeaderView *paramHeader = entityTable->horizontalHeader();
@@ -184,11 +197,14 @@ void widgetAtelier::slotCellChanged(int row, int col)
     if (entity == 0)
         return;
 
+    if (col < 1)
+        return;
+
     // Update the entity parameter with the new value
-    entity->setParameterValue(col, newValue);
+    entity->setParameterValue(col - 1, newValue);
 
     // Send a message to inform the world that a value has been updated
-    emit entityValueChanged(entity, col, newValue);
+    emit entityValueChanged(entity, col - 1, newValue);
 }
 
 /**
