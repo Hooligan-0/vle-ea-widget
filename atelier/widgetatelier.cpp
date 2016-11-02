@@ -5,6 +5,7 @@
  *
  * Copyright (c) 2016 Agilack
  */
+#include <QComboBox>
 #include <QLabel>
 #include <QLineEdit>
 #include <QMenu>
@@ -72,9 +73,13 @@ void widgetAtelier::addEntity(QTableWidget *table, Atelier *entity)
 
     // Set the Rotation name into the first data column
     QTableWidgetItem *rItem = new QTableWidgetItem();
-    rItem->setFlags( rItem->flags() ^ Qt::ItemIsEditable);
+    rItem->setData(Qt::UserRole, qVariantFromValue((void *)entity));
     if (entity->getRotation())
-        rItem->setText( entity->getRotation()->getName() );
+    {
+        Rotation *rot = entity->getRotation();
+        rItem->setData(Qt::UserRole+1, qVariantFromValue((void *)rot));
+        rItem->setText( rot->getName() );
+    }
     table->setItem(row, 0, rItem);
 
     // Set parameters values
@@ -189,22 +194,50 @@ void widgetAtelier::slotCellChanged(int row, int col)
     if (item == 0)
         return;
 
-    // Get the new value and convert it to double
-    double newValue = item->text().toDouble();
+    if (col == 0)
+    {
+        // Get the Entity associated with modified item
+        QVariant vEntity = item->data(Qt::UserRole);
+        if ( ! vEntity.isValid())
+            return;
+        Atelier *entity = (Atelier *) vEntity.value<void *>();
 
-    // Get the associated entity
-    Atelier *entity = (Atelier *) item->data(Qt::UserRole).value<void *>();
-    if (entity == 0)
-        return;
+        // Get the selected Rotation
+        QVariant vRotation = item->data(Qt::UserRole + 1);
+        if ( ! vRotation.isValid())
+            return;
+        Rotation *rot = (Rotation *) vRotation.value<void *>();
 
-    if (col < 1)
-        return;
+        // If the selected rotation is the same than previous ...
+        if (rot == entity->getRotation())
+            // ... nothing more to do
+            return;
 
-    // Update the entity parameter with the new value
-    entity->setParameterValue(col - 1, newValue);
+        // Update entity with new selected Rotation
+        entity->setRotation(rot);
 
-    // Send a message to inform the world that a value has been updated
-    emit entityValueChanged(entity, col - 1, newValue);
+        // Send a message to inform the world that a new rotation is selected
+        emit entityRotationChanged(entity);
+    }
+    else
+    {
+        // Get the new value and convert it to double
+        double newValue = item->text().toDouble();
+
+        // Get the associated entity
+        Atelier *entity = (Atelier *) item->data(Qt::UserRole).value<void *>();
+        if (entity == 0)
+            return;
+
+        if (col < 1)
+            return;
+
+        // Update the entity parameter with the new value
+        entity->setParameterValue(col - 1, newValue);
+
+        // Send a message to inform the world that a value has been updated
+        emit entityValueChanged(entity, col - 1, newValue);
+    }
 }
 
 /**
@@ -534,8 +567,11 @@ widgetAtelierDelegate::widgetAtelierDelegate(QObject *parent) : QStyledItemDeleg
 QWidget *widgetAtelierDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     (void)option;
-    (void)index;
-    QLineEdit* editor = new QLineEdit(parent);
+    QWidget *editor;
+    if (index.column() == 0)
+        editor = (QWidget *)new QComboBox(parent);
+    else
+        editor = (QLineEdit *)new QLineEdit(parent);
 
     QPalette palette;
     palette.setColor(QPalette::Base, QColor(200,255,225));
@@ -547,19 +583,79 @@ QWidget *widgetAtelierDelegate::createEditor(QWidget *parent, const QStyleOption
 
 void widgetAtelierDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const
 {
-    QVariant value = index.model()->data(index, Qt::EditRole);
-    QLineEdit *line = static_cast<QLineEdit*>(editor);
-    line->setText(value.toString());
+    QLineEdit *line  = qobject_cast<QLineEdit*>(editor);
+    QComboBox *combo = qobject_cast<QComboBox*>(editor);
+    if (line)
+    {
+        QVariant value = index.model()->data(index, Qt::EditRole);
+        line->setText(value.toString());
+    }
+    else if (combo)
+    {
+        // Get the Entity associated with selected item
+        QVariant vEntity = index.model()->data(index, Qt::UserRole);
+        if ( ! vEntity.isValid())
+            return;
+        Atelier *entity = (Atelier *) vEntity.value<void *>();
+        // Get the exploitation that owns this entity
+        Exploitation *e = entity->getExploitation();
+        if (e == 0)
+            return;
+
+        Rotation *currentRot = entity->getRotation();
+
+        int rotIndex = 0;
+
+        // Search all available rotation into Exploitation
+        for (uint i = 0; i < e->countRotation(); ++i)
+        {
+            Rotation *rot = e->getRotation(i);
+            combo->addItem(rot->getName());
+            // If this rotation is the currently selected
+            if (currentRot == rot)
+                // Save the index, to preselect it after this loop
+                rotIndex = i;
+        }
+        combo->setCurrentIndex(rotIndex);
+    }
 }
 
 void widgetAtelierDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const
 {
-    QLineEdit *line = static_cast<QLineEdit*>(editor);
-    QString value = line->text();
-    // Check if the new value is a 'double'
-    bool valid;
-    value.toDouble(&valid);
-    // Update the cell value only if the new value is a 'double'
-    if (valid)
-        model->setData(index, value);
+    QLineEdit *line  = qobject_cast<QLineEdit*>(editor);
+    QComboBox *combo = qobject_cast<QComboBox*>(editor);
+    if (line)
+    {
+        QString value = line->text();
+        // Check if the new value is a 'double'
+        bool valid;
+        value.toDouble(&valid);
+        // Update the cell value only if the new value is a 'double'
+        if (valid)
+            model->setData(index, value);
+    }
+    else if (combo)
+    {
+        int selectedIndex = combo->currentIndex();
+        if (selectedIndex < 0)
+            return;
+
+        // Get the Entity associated with current edited cell
+        QVariant vEntity = index.model()->data(index, Qt::UserRole);
+        if ( ! vEntity.isValid())
+            return;
+        Atelier *entity = (Atelier *) vEntity.value<void *>();
+        // Get the exploitation that owns this entity
+        Exploitation *e = entity->getExploitation();
+        if (e == 0)
+            return;
+
+        // Get the rotation at the index of the combobox selection
+        Rotation *rot = e->getRotation(selectedIndex);
+        if (rot == 0)
+            return;
+        // Update table item with the selected rotation
+        model->setData(index, rot->getName());
+        model->setData(index, qVariantFromValue((void *)rot), Qt::UserRole+1);
+    }
 }

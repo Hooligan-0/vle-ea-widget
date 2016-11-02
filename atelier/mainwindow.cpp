@@ -32,6 +32,9 @@ MainWindow::MainWindow(QWidget *parent) :
     // Catch signal emited when an entity is renamed
     QObject::connect(ui->AtelierWidget, SIGNAL(entityNameChanged(Atelier*)),
                      this,              SLOT  (entityNameChanged(Atelier*)));
+    // Catch signal when the rotation attribute of an entity is modified
+    QObject::connect(ui->AtelierWidget, SIGNAL(entityRotationChanged(Atelier*)),
+                     this,              SLOT  (entityRotationChanged(Atelier*)));
     // Catch signal when one value of an entity is modified
     QObject::connect(ui->AtelierWidget, SIGNAL(entityValueChanged(Atelier*,int,double)),
                      this,              SLOT  (entityValueChanged(Atelier*,int,double)));
@@ -65,6 +68,10 @@ MainWindow::~MainWindow()
             Atelier *entity = a->getEntity(j);
             QString dbgLine("    ");
             dbgLine += entity->getName() + " : ";
+            if (entity->getRotation())
+                dbgLine += entity->getRotation()->getName() + " ";
+            else
+                dbgLine += "(no-rotation) ";
             for (int k = 0; k < entity->countParameter(); ++k)
             {
                 dbgLine += QString::number(entity->getParameterValue(k));
@@ -109,6 +116,25 @@ void MainWindow::entityDeleted(Atelier *atelier, int index)
 void MainWindow::entityNameChanged (Atelier *entity)
 {
     qWarning() << "Entity renamed " << entity->getName();
+}
+
+/**
+ * @brief Slot called when a new rotation is selected for an entity
+ *
+ * @param entity Pointer to the modified entity
+ */
+void MainWindow::entityRotationChanged(Atelier *entity)
+{
+    if (entity->getRotation())
+    {
+        qWarning() << "Entity " << entity->getName()
+                   << "use a new rotation " << entity->getRotation()->getName();
+    }
+    else
+    {
+        qWarning() << "Entity " << entity->getName()
+                   << "doesn't use any rotation ";
+    }
 }
 
 /**

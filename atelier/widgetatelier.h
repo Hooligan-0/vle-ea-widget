@@ -30,6 +30,7 @@ signals:
     void entityAdded         (Atelier *atelier, int index);
     void entityDeleted       (Atelier *atelier, int index);
     void entityNameChanged   (Atelier *entity);
+    void entityRotationChanged(Atelier *entity);
     void entityValueChanged  (Atelier *entity,  int index, double value);
     void parameterAdded      (Atelier *atelier, int index);
     void parameterDeleted    (Atelier *atelier, int index);
