@@ -12,15 +12,18 @@
 #include <QString>
 #include "rotation.h"
 
+class Exploitation;
 class AtelierParameter;
 
 class Atelier
 {
 public:
-    Atelier();
+    explicit Atelier(Atelier *parent = 0);
+    explicit Atelier(Exploitation *exploitation);
     ~Atelier();
     const QString &getName(void);
     void setName(const QString &name);
+    Exploitation *getExploitation(void);
     // Entities
     Atelier *addEntity   (void);
     int      countEntity (void);
@@ -40,7 +43,9 @@ public:
     void    setParameterName(int index, QString &name);
     void    setRotation(Rotation *rotation);
 private:
-    QString mName;
+    Atelier      *mParent;
+    Exploitation *mExploitation;
+    QString   mName;
     Rotation *mRotation;
     QList<AtelierParameter *> mParameters;
     QList<Atelier *>          mEntities;

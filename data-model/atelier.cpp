@@ -6,15 +6,33 @@
  * Copyright (c) 2016 Agilack
  */
 #include "atelier.h"
+#include "exploitation.h"
 
 /**
  * @brief Default constructor for Atelier object
  *
+ * @param parent Pointer to the parent Atelier (the new object is an entity)
  */
-Atelier::Atelier()
+Atelier::Atelier(Atelier *parent)
 {
     mName.clear();
     mEntities.clear();
+    mExploitation = 0;
+    mParent   = parent;
+    mRotation = 0;
+}
+
+/**
+ * @brief Constructor for Atelier object
+ *
+ * @param parent Pointer to an exploitation that owns this Atelier
+ */
+Atelier::Atelier(Exploitation * exploitation)
+{
+    mName.clear();
+    mEntities.clear();
+    mExploitation = exploitation;
+    mParent   = 0;
     mRotation = 0;
 }
 
@@ -44,6 +62,16 @@ Atelier::~Atelier()
         // Then, delete it
         delete parameter;
     }
+}
+
+Exploitation *Atelier::getExploitation(void)
+{
+    if (mExploitation)
+        return mExploitation;
+    else if (mParent)
+        return mParent->getExploitation();
+    else
+        return 0;
 }
 
 /**
@@ -83,7 +111,7 @@ void Atelier::setName(const QString &name)
  */
 Atelier *Atelier::addEntity(void)
 {
-    Atelier *newEntity = new Atelier();
+    Atelier *newEntity = new Atelier(this);
     for (int i = 0; i < mParameters.count(); ++i)
         newEntity->addParameter( mParameters.at(i) );
     mEntities.push_back(newEntity);
